@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Play Office Odyssey — Official HTML5 Game Experience</title>
+    <meta name="description" content="Play Maude Natasha: Office Odyssey directly inside your browser — A cinematic educational platformer of ambition, strategy, and triumph.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            color: #0f172a;
+        }
+
+        #play-page-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* FLOATING NAVBAR OVERLAY (ZERO VERTICAL DEDUCTION) */
+        .p-navbar {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10000;
+            pointer-events: none;
+            height: auto;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .p-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .p-logo span {
+            color: #ffc837;
+        }
+
+        .p-logo-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ffc837, #e6a100);
+            color: #06070b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.85rem;
+            box-shadow: 0 0 14px rgba(255, 200, 55, 0.35);
+        }
+
+        .p-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .p-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s ease;
+        }
+
+        .p-btn:hover {
+            background: #ffc837;
+            color: #06070b;
+            border-color: #ffc837;
+            box-shadow: 0 0 15px rgba(255, 200, 55, 0.35);
+        }
+
+        .p-btn-back {
+            background: rgba(255, 200, 55, 0.1);
+            color: #ffc837;
+            border-color: rgba(255, 200, 55, 0.3);
+        }
+
+        /* GAME VIEWPORT & IFRAME (100vw x 100vh FULLSCREEN) */
+        .p-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        iframe#pGameIframe {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            outline: none;
+            display: block;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            object-fit: contain;
+        }
+
+        /* MOBILE RESPONSIVE ASPECT FIT FOR PORTRAIT AND LANDSCAPE */
+        @media (max-width: 768px) {
+            .p-navbar {
+                top: 12px;
+                right: 12px;
+                left: auto;
+            }
+            .p-btn-exit {
+                font-size: 0.68rem !important;
+                padding: 6px 14px !important;
+            }
+        }
+
+        @media (max-width: 768px) and (orientation: portrait) {
+            iframe#pGameIframe {
+                width: 100vw;
+                height: 56.25vw;
+                max-height: 100vh;
+                margin: auto;
+            }
+        }
+
+        #pGameLoader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0e121e 0%, #040508 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.4s ease;
+        }
+
+        #pGameLoader.loaded {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .p-loader-logo {
+            width: 76px;
+            height: 76px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffc837, #e6a100);
+            color: #06070b;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 40px rgba(255, 200, 55, 0.4);
+            margin-bottom: 24px;
+            animation: pPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 200, 55, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 0 50px rgba(255, 200, 55, 0.6), 0 0 20px #00f0ff; }
+        }
+
+        .p-loader-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .p-loader-status {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            letter-spacing: 1.5px;
+            margin-bottom: 24px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .p-progress-track {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 200, 55, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .p-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ffc837, #00f0ff);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 200, 55, 0.4);
+            transition: width 0.15s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div id="play-page-container">
+    <!-- Floating Exit Button -->
+    <header class="p-navbar" style="justify-content: flex-end;">
+        <a href="./index.html" class="p-btn-exit" style="background: rgba(255, 42, 133, 0.85); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 800; letter-spacing: 1.5px; padding: 10px 22px; border-radius: 30px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; backdrop-filter: blur(12px); box-shadow: 0 8px 25px rgba(255, 42, 133, 0.4); pointer-events: auto;">✕ EXIT GAME</a>
+    </header>
+
+    <!-- Viewport -->
+    <main class="p-viewport" id="pViewport">
+        <!-- Loading Screen -->
+        <div id="pGameLoader">
+            <div class="p-loader-logo">OO</div>
+            <h1 class="p-loader-title">OFFICE ODYSSEY</h1>
+            <div class="p-loader-status" id="pLoaderStatus">LOADING GAME... 0%</div>
+            <div class="p-progress-track">
+                <div class="p-progress-fill" id="pProgressFill"></div>
+            </div>
+        </div>
+
+    <!-- Official Office Odyssey Unity WebGL Game Frame -->
+    <iframe id="pGameIframe" src="https://officeodyssey.maudenatasha.com/game/index.html" allow="autoplay; fullscreen; keyboard" title="Office Odyssey Official Game"></iframe>
+    </main>
+</div>
+
+<script>
+    const loader = document.getElementById('pGameLoader');
+    const statusText = document.getElementById('pLoaderStatus');
+    const fillBar = document.getElementById('pProgressFill');
+    const iframe = document.getElementById('pGameIframe');
+
+    const exitBtn = document.querySelector('.p-btn-exit');
+    if (exitBtn) {
+        exitBtn.addEventListener('click', () => {
+            if (iframe) iframe.src = 'about:blank';
+        });
+    }
+
+    window.addEventListener('beforeunload', () => {
+        if (iframe) iframe.src = 'about:blank';
+    });
+
+    let isMuted = false;
+
+    function startLoading() {
+        loader.classList.remove('loaded');
+        let pct = 0;
+        fillBar.style.width = '0%';
+        statusText.textContent = 'LOADING GAME... 0%';
+
+        const interval = setInterval(() => {
+            pct += Math.floor(Math.random() * 15) + 12;
+            if (pct >= 100) {
+                pct = 100;
+                clearInterval(interval);
+                fillBar.style.width = '100%';
+                statusText.textContent = 'GAME READY!';
+                setTimeout(() => {
+                    loader.classList.add('loaded');
+                }, 250);
+            } else {
+                fillBar.style.width = pct + '%';
+                statusText.textContent = `LOADING GAME... ${pct}%`;
+            }
+        }, 100);
+    }
+
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            const viewport = document.getElementById('pViewport');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (viewport.requestFullscreen) viewport.requestFullscreen();
+                else if (viewport.webkitRequestFullscreen) viewport.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        });
+    }
+
+    if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            muteBtn.textContent = isMuted ? '🔇 SOUND: OFF' : '🔊 SOUND: ON';
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'SET_MUTE', muted: isMuted }, '*');
+            }
+        });
+    }
+
+    if (reloadBtn) {
+        reloadBtn.addEventListener('click', () => {
+            startLoading();
+            if (iframe) iframe.src = iframe.src;
+        });
+    }
+
+    startLoading();
+</script>
+</body>
+</html>
